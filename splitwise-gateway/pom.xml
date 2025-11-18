@@ -11,17 +11,23 @@
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>splitwise-discovery</artifactId>
+    <artifactId>splitwise-gateway</artifactId>
     <packaging>jar</packaging>
 
-    <name>Splitwise Discovery Service</name>
-    <description>Eureka Server for Service Discovery</description>
+    <name>Splitwise API Gateway</name>
+    <description>Spring Cloud Gateway for routing requests</description>
 
     <dependencies>
-        <!-- Spring Cloud Netflix Eureka Server -->
+        <!-- Spring Cloud Gateway -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
+            <artifactId>spring-cloud-starter-gateway</artifactId>
+        </dependency>
+
+        <!-- Eureka Client for Service Discovery -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
     </dependencies>
 
@@ -34,3 +40,4 @@
         </plugins>
     </build>
 </project>
+
