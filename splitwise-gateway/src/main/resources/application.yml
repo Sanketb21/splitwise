@@ -75,7 +75,8 @@ eureka:
 # Logging Configuration
 logging:
   level:
-    com.splitwise: DEBUG
+    com.splitwise: INFO
+    com.splitwise.gateway.filter: INFO
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web: DEBUG
 
