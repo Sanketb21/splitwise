@@ -32,9 +32,11 @@ This project is being built step by step. See `PROJECT_PLAN.md` for the detailed
 
 ✅ Task 1.1: Project Structure Setup - COMPLETED  
 ✅ Task 1.2: Service Discovery (Eureka Server) - COMPLETED  
-✅ Task 1.3: API Gateway Setup - COMPLETED
+✅ Task 1.3: API Gateway Setup - COMPLETED  
+✅ Task 1.4: Common Module - COMPLETED
 
 ### Completed Modules:
+- `splitwise-common` - Shared DTOs, exceptions, utilities, and constants
 - `splitwise-discovery` - Eureka Server running on port 8761
 - `splitwise-gateway` - API Gateway running on port 8080
 
