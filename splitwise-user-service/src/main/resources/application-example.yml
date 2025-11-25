@@ -1,0 +1,10 @@
+# Example configuration file
+# Copy this to application-local.yml and update with your MySQL credentials
+# Or set environment variables: DB_USERNAME and DB_PASSWORD
+
+spring:
+  datasource:
+    username: your_mysql_username
+    password: your_mysql_password
+
+
