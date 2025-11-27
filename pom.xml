@@ -18,6 +18,7 @@
         <module>splitwise-discovery</module>
         <module>splitwise-gateway</module>
         <module>splitwise-user-service</module>
+        <module>splitwise-group-service</module>
     </modules>
 
     <properties>
