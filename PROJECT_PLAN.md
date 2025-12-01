@@ -71,7 +71,7 @@ splitwise/
 
 ## Phase 2: User Service
 
-### Task 2.1: User Service - Database & Entity Setup
+### Task 2.1: User Service - Database & Entity Setup ✅ COMPLETED
 - Create MySQL database for user service
 - Design User table schema
 - Create User entity (JPA)
@@ -91,19 +91,19 @@ splitwise/
 - is_active (BOOLEAN)
 ```
 
-### Task 2.2: User Service - Repository Layer
+### Task 2.2: User Service - Repository Layer ✅ COMPLETED
 - Create UserRepository interface
 - Add custom query methods
 - Add pagination support
 
-### Task 2.3: User Service - Service Layer
+### Task 2.3: User Service - Service Layer ✅ COMPLETED
 - User registration logic
 - User login/authentication
 - User profile update
 - User search functionality
 - Password encryption (BCrypt)
 
-### Task 2.4: User Service - Controller Layer
+### Task 2.4: User Service - Controller Layer ✅ COMPLETED
 - REST endpoints for user operations
 - Input validation
 - Error handling
@@ -114,10 +114,10 @@ splitwise/
 - POST /api/users/login
 - GET /api/users/{id}
 - PUT /api/users/{id}
-- GET /api/users/search?query={query}
+- GET /api/users/search?query={query}&page={page}&size={size}
 - DELETE /api/users/{id}
 
-### Task 2.5: User Service - Security
+### Task 2.5: User Service - Security ✅ COMPLETED
 - JWT token generation
 - Password hashing
 - Input validation
@@ -127,7 +127,7 @@ splitwise/
 
 ## Phase 3: Group Service
 
-### Task 3.1: Group Service - Database & Entity Setup
+### Task 3.1: Group Service - Database & Entity Setup ✅ COMPLETED
 - Create MySQL database for group service
 - Design Group and GroupMember tables
 - Create entities (JPA)
@@ -154,12 +154,12 @@ splitwise/
 - is_active (BOOLEAN)
 ```
 
-### Task 3.2: Group Service - Repository Layer
+### Task 3.2: Group Service - Repository Layer ✅ COMPLETED
 - Create GroupRepository
 - Create GroupMemberRepository
 - Add custom queries
 
-### Task 3.3: Group Service - Service Layer
+### Task 3.3: Group Service - Service Layer ✅ COMPLETED
 - Create group
 - Add members to group
 - Remove members from group
@@ -167,24 +167,29 @@ splitwise/
 - Get group details with members
 - Update group information
 - Delete group
+- Update member role
 
-### Task 3.4: Group Service - Controller Layer
+### Task 3.4: Group Service - Controller Layer ✅ COMPLETED
 - REST endpoints for group operations
 - Integration with User Service (via Feign Client)
 
 **Endpoints:**
-- POST /api/groups
+- POST /api/groups?createdBy={userId}
 - GET /api/groups/{id}
-- PUT /api/groups/{id}
-- DELETE /api/groups/{id}
+- PUT /api/groups/{id}?userId={userId}
+- DELETE /api/groups/{id}?userId={userId}
 - GET /api/groups/user/{userId}
-- POST /api/groups/{groupId}/members
-- DELETE /api/groups/{groupId}/members/{userId}
+- GET /api/groups?page={page}&size={size}&sortBy={field}&sortDir={asc|desc}&query={searchTerm}
+- GET /api/groups/{groupId}/members
+- POST /api/groups/{groupId}/members?addedBy={userId}
+- DELETE /api/groups/{groupId}/members/{userId}?removedBy={userId}
+- PUT /api/groups/{groupId}/members/{userId}/role?role={ADMIN|MEMBER}&updatedBy={userId}
 
-### Task 3.5: Group Service - Inter-Service Communication
+### Task 3.5: Group Service - Inter-Service Communication ✅ COMPLETED
 - Set up Feign Client to call User Service
 - Handle service communication errors
 - Add circuit breaker (Resilience4j)
+- Implement fallback mechanism for service failures
 
 ---
 

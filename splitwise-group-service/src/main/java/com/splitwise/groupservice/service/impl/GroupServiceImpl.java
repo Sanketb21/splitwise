@@ -378,18 +378,46 @@ public class GroupServiceImpl implements GroupService {
 
     /**
      * Validates that the given user exists by calling the User Service
+     * Handles circuit breaker fallback and various error scenarios
      */
     private void validateUserExists(Long userId) {
         try {
             ApiResponse<UserClientResponse> response = userServiceClient.getUserById(userId);
-            if (response == null || !response.isSuccess() || response.getData() == null || !Boolean.TRUE.equals(response.getData().getIsActive())) {
+            
+            // Handle fallback scenario (when circuit breaker is open)
+            if (response == null) {
+                log.warn("User Service is unavailable (circuit breaker fallback). Cannot validate user ID: {}", userId);
+                throw new BadRequestException("User Service is temporarily unavailable. Please try again later.");
+            }
+            
+            // Handle invalid response
+            if (!response.isSuccess() || response.getData() == null || !Boolean.TRUE.equals(response.getData().getIsActive())) {
+                log.warn("User not found or inactive: {}", userId);
                 throw new ResourceNotFoundException("User", "id", userId);
             }
+            
+            log.debug("User validation successful for user ID: {}", userId);
         } catch (FeignException.NotFound ex) {
+            log.warn("User not found via User Service: {}", userId);
             throw new ResourceNotFoundException("User", "id", userId);
         } catch (FeignException ex) {
-            log.error("Failed to validate user {}: {}", userId, ex.getMessage());
-            throw new BadRequestException("Unable to validate user at the moment. Please try again later.");
+            int status = ex.status();
+            log.error("Failed to validate user {}: Status={}, Message={}", userId, status, ex.getMessage());
+            
+            // Handle different HTTP status codes
+            if (status >= 500) {
+                throw new BadRequestException("User Service is temporarily unavailable. Please try again later.");
+            } else if (status == 404) {
+                throw new ResourceNotFoundException("User", "id", userId);
+            } else {
+                throw new BadRequestException("Unable to validate user at the moment. Please try again later.");
+            }
+        } catch (BadRequestException | ResourceNotFoundException ex) {
+            // Re-throw our custom exceptions
+            throw ex;
+        } catch (Exception ex) {
+            log.error("Unexpected error while validating user {}: {}", userId, ex.getMessage(), ex);
+            throw new BadRequestException("An unexpected error occurred while validating user. Please try again later.");
         }
     }
     

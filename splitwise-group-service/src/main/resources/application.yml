@@ -30,6 +30,44 @@ eureka:
   instance:
     prefer-ip-address: true
 
+# Feign Client Configuration
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
+      user-service:
+        connectTimeout: 3000
+        readTimeout: 3000
+  circuitbreaker:
+    enabled: true
+  resilience4j:
+    enabled: true
+
+# Resilience4j Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      userService:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        recordExceptions:
+          - feign.FeignException
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException
+  timelimiter:
+    instances:
+      userService:
+        timeoutDuration: 3s
+
 # Logging Configuration
 logging:
   level:
@@ -37,4 +75,6 @@ logging:
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    com.splitwise.groupservice.client: DEBUG
+    feign: DEBUG
 

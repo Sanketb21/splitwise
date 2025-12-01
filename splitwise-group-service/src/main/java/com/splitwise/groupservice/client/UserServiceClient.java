@@ -6,7 +6,15 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient(name = "user-service", path = "/users")
+/**
+ * Feign Client for communicating with User Service
+ * Includes circuit breaker fallback for resilience
+ */
+@FeignClient(
+    name = "user-service", 
+    path = "/api/users",
+    fallback = UserServiceClientFallback.class
+)
 public interface UserServiceClient {
 
     @GetMapping("/{id}")
