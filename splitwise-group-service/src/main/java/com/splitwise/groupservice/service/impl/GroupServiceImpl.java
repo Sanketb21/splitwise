@@ -2,11 +2,14 @@ package com.splitwise.groupservice.service.impl;
 
 import com.splitwise.common.exception.BadRequestException;
 import com.splitwise.common.exception.ResourceNotFoundException;
+import com.splitwise.common.dto.ApiResponse;
+import com.splitwise.groupservice.client.UserServiceClient;
 import com.splitwise.groupservice.dto.GroupDetailResponse;
 import com.splitwise.groupservice.dto.GroupMemberRequest;
 import com.splitwise.groupservice.dto.GroupMemberResponse;
 import com.splitwise.groupservice.dto.GroupRequest;
 import com.splitwise.groupservice.dto.GroupResponse;
+import com.splitwise.groupservice.dto.UserClientResponse;
 import com.splitwise.groupservice.entity.Group;
 import com.splitwise.groupservice.entity.GroupMember;
 import com.splitwise.groupservice.repository.GroupMemberRepository;
@@ -18,6 +21,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import feign.FeignException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +38,7 @@ public class GroupServiceImpl implements GroupService {
     
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final UserServiceClient userServiceClient;
     
     private static final String ROLE_ADMIN = "ADMIN";
     private static final String ROLE_MEMBER = "MEMBER";
@@ -40,6 +46,8 @@ public class GroupServiceImpl implements GroupService {
     @Override
     public GroupResponse createGroup(GroupRequest groupRequest, Long createdBy) {
         log.info("Creating new group '{}' by user ID: {}", groupRequest.getName(), createdBy);
+
+        validateUserExists(createdBy);
         
         // Check if group name already exists (case-insensitive)
         if (groupRepository.existsByNameIgnoreCaseAndIsActiveTrue(groupRequest.getName())) {
@@ -108,6 +116,8 @@ public class GroupServiceImpl implements GroupService {
     public GroupResponse updateGroup(Long id, GroupRequest groupRequest, Long userId) {
         log.info("Updating group ID: {} by user ID: {}", id, userId);
         
+        validateUserExists(userId);
+
         Group group = groupRepository.findByIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Group", "id", id));
         
@@ -136,6 +146,8 @@ public class GroupServiceImpl implements GroupService {
     public void deleteGroup(Long id, Long userId) {
         log.info("Deleting group ID: {} by user ID: {}", id, userId);
         
+        validateUserExists(userId);
+
         Group group = groupRepository.findByIdAndIsActiveTrue(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Group", "id", id));
         
@@ -160,6 +172,9 @@ public class GroupServiceImpl implements GroupService {
     public GroupMemberResponse addMemberToGroup(Long groupId, GroupMemberRequest memberRequest, Long addedBy) {
         log.info("Adding user ID: {} to group ID: {} by user ID: {}", memberRequest.getUserId(), groupId, addedBy);
         
+        validateUserExists(addedBy);
+        validateUserExists(memberRequest.getUserId());
+
         // Check if group exists and is active
         Group group = groupRepository.findByIdAndIsActiveTrue(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group", "id", groupId));
@@ -176,8 +191,10 @@ public class GroupServiceImpl implements GroupService {
         
         // Determine role (default to MEMBER if not provided or invalid)
         String role = memberRequest.getRole();
-        if (role == null || role.isEmpty() || (!role.equals(ROLE_ADMIN) && !role.equals(ROLE_MEMBER))) {
+        if (role == null || role.isEmpty() || (!role.equalsIgnoreCase(ROLE_ADMIN) && !role.equalsIgnoreCase(ROLE_MEMBER))) {
             role = ROLE_MEMBER;
+        } else {
+            role = role.toUpperCase();
         }
         
         // Create group member
@@ -198,6 +215,8 @@ public class GroupServiceImpl implements GroupService {
     public void removeMemberFromGroup(Long groupId, Long userId, Long removedBy) {
         log.info("Removing user ID: {} from group ID: {} by user ID: {}", userId, groupId, removedBy);
         
+        validateUserExists(removedBy);
+
         // Check if group exists and is active
         Group group = groupRepository.findByIdAndIsActiveTrue(groupId)
                 .orElseThrow(() -> new ResourceNotFoundException("Group", "id", groupId));
@@ -231,6 +250,7 @@ public class GroupServiceImpl implements GroupService {
     @Transactional(readOnly = true)
     public List<GroupResponse> getUserGroups(Long userId) {
         log.info("Fetching all groups for user ID: {}", userId);
+        validateUserExists(userId);
         List<GroupMember> memberships = groupMemberRepository.findByUserIdAndIsActiveTrue(userId);
         
         List<Long> groupIds = memberships.stream()
@@ -251,6 +271,7 @@ public class GroupServiceImpl implements GroupService {
     @Transactional(readOnly = true)
     public List<GroupResponse> getGroupsCreatedByUser(Long userId) {
         log.info("Fetching all groups created by user ID: {}", userId);
+        validateUserExists(userId);
         return groupRepository.findByCreatedByAndIsActiveTrue(userId).stream()
                 .map(this::mapToGroupResponse)
                 .collect(Collectors.toList());
@@ -274,7 +295,12 @@ public class GroupServiceImpl implements GroupService {
     @Transactional(readOnly = true)
     public Page<GroupResponse> searchGroups(String searchTerm, Pageable pageable) {
         log.info("Searching groups with term: {}", searchTerm);
-        Page<Group> groups = groupRepository.searchActiveGroups(searchTerm, pageable);
+        Page<Group> groups;
+        if (searchTerm == null || searchTerm.isBlank()) {
+            groups = groupRepository.findByIsActiveTrue(pageable);
+        } else {
+            groups = groupRepository.searchActiveGroups(searchTerm, pageable);
+        }
         return groups.map(this::mapToGroupResponse);
     }
     
@@ -284,6 +310,45 @@ public class GroupServiceImpl implements GroupService {
         log.info("Fetching all active groups");
         Page<Group> groups = groupRepository.findByIsActiveTrue(pageable);
         return groups.map(this::mapToGroupResponse);
+    }
+    
+    @Override
+    public GroupMemberResponse updateMemberRole(Long groupId, Long userId, String role, Long updatedBy) {
+        log.info("Updating role for user ID: {} in group ID: {} to role: {} by user ID: {}", userId, groupId, role, updatedBy);
+        
+        validateUserExists(updatedBy);
+        validateUserExists(userId);
+
+        // Check if group exists and is active
+        Group group = groupRepository.findByIdAndIsActiveTrue(groupId)
+                .orElseThrow(() -> new ResourceNotFoundException("Group", "id", groupId));
+        
+        // Check if user updating role is creator or admin
+        if (!isUserCreatorOrAdmin(groupId, updatedBy)) {
+            throw new BadRequestException("Only group creator or admin can update member roles");
+        }
+        
+        // Find the member
+        GroupMember member = groupMemberRepository.findByGroupIdAndUserIdAndIsActiveTrue(groupId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("GroupMember", "groupId and userId", groupId + ", " + userId));
+        
+        // Prevent changing the creator's role
+        if (group.getCreatedBy().equals(userId)) {
+            throw new BadRequestException("Cannot change the group creator's role");
+        }
+        
+        // Validate and normalize role
+        String normalizedRole = role != null ? role.toUpperCase() : "";
+        if (!normalizedRole.equals(ROLE_ADMIN) && !normalizedRole.equals(ROLE_MEMBER)) {
+            throw new BadRequestException("Invalid role. Role must be either ADMIN or MEMBER");
+        }
+        
+        // Update role
+        member.setRole(normalizedRole);
+        GroupMember updatedMember = groupMemberRepository.save(member);
+        log.info("Member role updated successfully for user ID: {} in group ID: {}", userId, groupId);
+        
+        return mapToGroupMemberResponse(updatedMember);
     }
     
     /**
@@ -309,6 +374,23 @@ public class GroupServiceImpl implements GroupService {
         return groupMemberRepository.findByGroupIdAndUserIdAndIsActiveTrue(groupId, userId)
                 .map(member -> ROLE_ADMIN.equals(member.getRole()))
                 .orElse(false);
+    }
+
+    /**
+     * Validates that the given user exists by calling the User Service
+     */
+    private void validateUserExists(Long userId) {
+        try {
+            ApiResponse<UserClientResponse> response = userServiceClient.getUserById(userId);
+            if (response == null || !response.isSuccess() || response.getData() == null || !Boolean.TRUE.equals(response.getData().getIsActive())) {
+                throw new ResourceNotFoundException("User", "id", userId);
+            }
+        } catch (FeignException.NotFound ex) {
+            throw new ResourceNotFoundException("User", "id", userId);
+        } catch (FeignException ex) {
+            log.error("Failed to validate user {}: {}", userId, ex.getMessage());
+            throw new BadRequestException("Unable to validate user at the moment. Please try again later.");
+        }
     }
     
     /**

@@ -56,7 +56,7 @@ public class UserController {
      * GET /users/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable("id") Long id) {
         log.info("Get user by ID request: {}", id);
         UserResponse userResponse = userService.getUserById(id);
         return ResponseEntity.ok(ApiResponse.success(userResponse));
@@ -67,7 +67,7 @@ public class UserController {
      * GET /users/username/{username}
      */
     @GetMapping("/username/{username}")
-    public ResponseEntity<ApiResponse<UserResponse>> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserByUsername(@PathVariable("username") String username) {
         log.info("Get user by username request: {}", username);
         UserResponse userResponse = userService.getUserByUsername(username);
         return ResponseEntity.ok(ApiResponse.success(userResponse));
@@ -78,7 +78,7 @@ public class UserController {
      * GET /users/email/{email}
      */
     @GetMapping("/email/{email}")
-    public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(@PathVariable String email) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserByEmail(@PathVariable("email") String email) {
         log.info("Get user by email request: {}", email);
         UserResponse userResponse = userService.getUserByEmail(email);
         return ResponseEntity.ok(ApiResponse.success(userResponse));
@@ -90,7 +90,7 @@ public class UserController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody UserRequest userRequest) {
         log.info("Update user request for ID: {}", id);
         UserResponse userResponse = userService.updateUser(id, userRequest);
@@ -102,7 +102,7 @@ public class UserController {
      * DELETE /users/{id}
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable("id") Long id) {
         log.info("Delete user request for ID: {}", id);
         userService.deleteUser(id);
         return ResponseEntity.ok(ApiResponse.success("User deleted successfully"));

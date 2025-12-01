@@ -117,5 +117,16 @@ public interface GroupService {
      * @return page of active groups
      */
     Page<GroupResponse> getAllActiveGroups(Pageable pageable);
+    
+    /**
+     * Update a member's role in a group
+     * 
+     * @param groupId the group ID
+     * @param userId the user ID whose role is being updated
+     * @param role the new role (ADMIN or MEMBER)
+     * @param updatedBy the user ID making the request (must be creator or admin)
+     * @return the updated group member response
+     */
+    GroupMemberResponse updateMemberRole(Long groupId, Long userId, String role, Long updatedBy);
 }
 

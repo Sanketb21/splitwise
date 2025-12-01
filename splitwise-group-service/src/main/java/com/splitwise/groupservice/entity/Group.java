@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * Represents a group in the system
  */
 @Entity
-@Table(name = "groups")
+@Table(name = "groupsTable")
 @Data
 @Builder
 @NoArgsConstructor
