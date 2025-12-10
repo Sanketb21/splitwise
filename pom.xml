@@ -19,6 +19,7 @@
         <module>splitwise-gateway</module>
         <module>splitwise-user-service</module>
         <module>splitwise-group-service</module>
+        <module>splitwise-expense-service</module>
     </modules>
 
     <properties>
