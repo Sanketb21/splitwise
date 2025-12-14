@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
  */
 @FeignClient(
     name = "user-service", 
-    path = "/api/users",
+    path = "/users",
     fallback = UserServiceClientFallback.class
 )
 public interface UserServiceClient {
