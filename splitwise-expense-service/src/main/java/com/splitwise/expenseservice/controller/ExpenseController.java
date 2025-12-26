@@ -4,6 +4,7 @@ import com.splitwise.common.dto.ApiResponse;
 import com.splitwise.expenseservice.dto.BalanceResponse;
 import com.splitwise.expenseservice.dto.ExpenseRequest;
 import com.splitwise.expenseservice.dto.ExpenseResponse;
+import com.splitwise.expenseservice.dto.SimplifiedDebtResponse;
 import com.splitwise.expenseservice.service.ExpenseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class ExpenseController {
      * Create a new expense
      * 
      * @param expenseRequest the expense creation request
-     * @param createdBy the user ID who is creating the expense
+     * @param createdBy      the user ID who is creating the expense
      * @return the created expense response
      */
     @PostMapping
@@ -65,9 +66,9 @@ public class ExpenseController {
      * Get all expenses for a group with pagination
      * 
      * @param groupId the group ID
-     * @param page page number (default: 0)
-     * @param size page size (default: 10)
-     * @param sortBy field to sort by (default: "id")
+     * @param page    page number (default: 0)
+     * @param size    page size (default: 10)
+     * @param sortBy  field to sort by (default: "id")
      * @param sortDir sort direction: "asc" or "desc" (default: "desc")
      * @return page of expenses
      */
@@ -79,12 +80,12 @@ public class ExpenseController {
             @RequestParam(value = "sortBy", defaultValue = "expenseDate") String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir) {
         log.info("Get expenses for group ID: {}", groupId);
-        
+
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
+
         Page<ExpenseResponse> result = expenseService.getExpensesByGroup(groupId, pageable);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -92,10 +93,10 @@ public class ExpenseController {
     /**
      * Get all expenses paid by a user with pagination
      * 
-     * @param userId the user ID
-     * @param page page number (default: 0)
-     * @param size page size (default: 10)
-     * @param sortBy field to sort by (default: "expenseDate")
+     * @param userId  the user ID
+     * @param page    page number (default: 0)
+     * @param size    page size (default: 10)
+     * @param sortBy  field to sort by (default: "expenseDate")
      * @param sortDir sort direction: "asc" or "desc" (default: "desc")
      * @return page of expenses
      */
@@ -107,12 +108,12 @@ public class ExpenseController {
             @RequestParam(value = "sortBy", defaultValue = "expenseDate") String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir) {
         log.info("Get expenses paid by user ID: {}", userId);
-        
+
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
+
         Page<ExpenseResponse> result = expenseService.getExpensesByUser(userId, pageable);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -120,10 +121,10 @@ public class ExpenseController {
     /**
      * Get all expenses where a user is a participant with pagination
      * 
-     * @param userId the user ID
-     * @param page page number (default: 0)
-     * @param size page size (default: 10)
-     * @param sortBy field to sort by (default: "expenseDate")
+     * @param userId  the user ID
+     * @param page    page number (default: 0)
+     * @param size    page size (default: 10)
+     * @param sortBy  field to sort by (default: "expenseDate")
      * @param sortDir sort direction: "asc" or "desc" (default: "desc")
      * @return page of expenses
      */
@@ -135,12 +136,12 @@ public class ExpenseController {
             @RequestParam(value = "sortBy", defaultValue = "expenseDate") String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir) {
         log.info("Get expenses where user ID: {} is a participant", userId);
-        
+
         Sort sort = sortDir.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy).descending()
                 : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
+
         Page<ExpenseResponse> result = expenseService.getExpensesByParticipant(userId, pageable);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
@@ -148,9 +149,9 @@ public class ExpenseController {
     /**
      * Update an expense
      * 
-     * @param id the expense ID
+     * @param id             the expense ID
      * @param expenseRequest the update request
-     * @param updatedBy the user ID making the request
+     * @param updatedBy      the user ID making the request
      * @return the updated expense response
      */
     @PutMapping("/{id}")
@@ -166,7 +167,7 @@ public class ExpenseController {
     /**
      * Delete an expense
      * 
-     * @param id the expense ID
+     * @param id        the expense ID
      * @param deletedBy the user ID making the request
      * @return success response
      */
@@ -182,7 +183,7 @@ public class ExpenseController {
     /**
      * Get balance for a user in a specific group
      * 
-     * @param userId the user ID
+     * @param userId  the user ID
      * @param groupId the group ID
      * @return the balance response
      */
@@ -222,5 +223,18 @@ public class ExpenseController {
         BalanceResponse response = expenseService.getBalanceByUser(userId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
-}
 
+    /**
+     * Get simplified debts for a group (minimize transactions)
+     * 
+     * @param groupId the group ID
+     * @return list of simplified debt transactions
+     */
+    @GetMapping("/simplified-debts/group/{groupId}")
+    public ResponseEntity<ApiResponse<List<SimplifiedDebtResponse>>> getSimplifiedDebtsByGroup(
+            @PathVariable("groupId") Long groupId) {
+        log.info("Get simplified debts for group ID: {}", groupId);
+        List<SimplifiedDebtResponse> response = expenseService.getSimplifiedDebtsByGroup(groupId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+}

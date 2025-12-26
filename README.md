@@ -50,12 +50,20 @@ This project is being built step by step. See `PROJECT_PLAN.md` for the detailed
 - ✅ Task 3.4: Controller Layer
 - ✅ Task 3.5: Inter-Service Communication (Feign Client + Circuit Breaker)
 
+### Phase 4: Expense Service ✅ COMPLETED
+- ✅ Task 4.1: Database & Entity Setup
+- ✅ Task 4.2: Repository Layer
+- ✅ Task 4.3: Service Layer
+- ✅ Task 4.4: Controller Layer
+- ✅ Task 4.5: Business Logic (Split Calculation, Balance Calculation, Debt Simplification)
+
 ### Completed Modules:
 - `splitwise-common` - Shared DTOs, exceptions, utilities, and constants
 - `splitwise-discovery` - Eureka Server running on port 8761
 - `splitwise-gateway` - API Gateway running on port 8080
 - `splitwise-user-service` - User management and authentication (port 8081)
 - `splitwise-group-service` - Group management with inter-service communication (port 8082)
+- `splitwise-expense-service` - Expense management with split calculations and debt simplification (port 8083)
 
 ## Running the Services
 
@@ -107,12 +115,25 @@ The Group Service will be available at: http://localhost:8082
 
 **Note:** Ensure MySQL is running and the `group_db` database is created (or will be auto-created). The Group Service communicates with the User Service via Feign Client.
 
+### 5. Expense Service
+To start the Expense Service:
+
+```bash
+cd splitwise-expense-service
+mvn spring-boot:run
+```
+
+The Expense Service will be available at: http://localhost:8083
+
+**Note:** Ensure MySQL is running and the `expense_db` database is created (or will be auto-created). The Expense Service communicates with both User Service and Group Service via Feign Client.
+
 ## Service Startup Order
 
 1. **Discovery Service** (port 8761) - Start first
 2. **User Service** (port 8081) - Can start after Discovery
 3. **Group Service** (port 8082) - Requires Discovery and User Service
-4. **API Gateway** (port 8080) - Can start after Discovery (optional but recommended)
+4. **Expense Service** (port 8083) - Requires Discovery, User Service, and Group Service
+5. **API Gateway** (port 8080) - Can start after Discovery (optional but recommended)
 
 ## Testing the Services
 
@@ -128,6 +149,14 @@ The Group Service will be available at: http://localhost:8082
 - List Groups: `GET http://localhost:8082/api/groups?page=0&size=10`
 - Add Member: `POST http://localhost:8082/api/groups/{groupId}/members?addedBy={userId}`
 - Update Member Role: `PUT http://localhost:8082/api/groups/{groupId}/members/{userId}/role?role=ADMIN&updatedBy={userId}`
+
+### Expense Service Endpoints
+- Create Expense: `POST http://localhost:8083/api/expenses?createdBy={userId}`
+- Get Expense: `GET http://localhost:8083/api/expenses/{id}`
+- Get Group Expenses: `GET http://localhost:8083/api/expenses/group/{groupId}`
+- Get User Expenses: `GET http://localhost:8083/api/expenses/user/{userId}`
+- Get Balances by Group: `GET http://localhost:8083/api/expenses/balances/group/{groupId}`
+- Get Simplified Debts: `GET http://localhost:8083/api/expenses/simplified-debts/group/{groupId}`
 
 ### Via API Gateway
 All endpoints are also accessible through the API Gateway at `http://localhost:8080/api/{service-path}`
@@ -149,7 +178,15 @@ All endpoints are also accessible through the API Gateway at `http://localhost:8
 - Circuit breaker pattern for resilience
 - Comprehensive error handling
 
+### Expense Service
+- Expense creation with multiple split types (EQUAL, UNEQUAL, PERCENTAGE, SHARES)
+- Automatic split calculation algorithms
+- Balance tracking (who owes whom)
+- Debt simplification algorithm to minimize transactions
+- Inter-service communication with User and Group Services
+- Comprehensive expense queries and filtering
+
 ## Next Steps
 
-The next phase is **Phase 4: Expense Service**. Follow the tasks in `PROJECT_PLAN.md` to continue building the application incrementally.
+The next phase is **Phase 5: Settlement Service**. Follow the tasks in `PROJECT_PLAN.md` to continue building the application incrementally.
 
