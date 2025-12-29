@@ -20,6 +20,7 @@
         <module>splitwise-user-service</module>
         <module>splitwise-group-service</module>
         <module>splitwise-expense-service</module>
+        <module>splitwise-settlement-service</module>
     </modules>
 
     <properties>
