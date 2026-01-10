@@ -21,6 +21,7 @@
         <module>splitwise-group-service</module>
         <module>splitwise-expense-service</module>
         <module>splitwise-settlement-service</module>
+        <module>splitwise-notification-service</module>
     </modules>
 
     <properties>
