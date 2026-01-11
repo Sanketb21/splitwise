@@ -40,7 +40,7 @@ public class Notification {
      * Type of notification
      */
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
+    @Column(name = "type", nullable = false, length = 50, columnDefinition = "VARCHAR(50)")
     private NotificationType type;
 
     /**
